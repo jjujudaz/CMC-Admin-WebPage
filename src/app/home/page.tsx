@@ -26,6 +26,9 @@ function Home() {
         return () => unsubscribe();
     }, []);
 
+    function manageUserBtn(){
+        router.push('/users')
+    }
     return (
         <div
             style={{
@@ -77,6 +80,7 @@ function Home() {
                     <h3 style={{ color: "#334155", fontWeight: 600, fontSize: 18, marginBottom: 12 }}>Admin Features</h3>
                     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                         <button
+                            onClick={manageUserBtn}
                             style={{
                                 padding: "10px 0",
                                 borderRadius: 8,
@@ -89,7 +93,7 @@ function Home() {
                                 boxShadow: "0 2px 8px rgba(99,102,241,0.10)",
                                 transition: "background 0.2s, box-shadow 0.2s",
                             }}
-                            onClick={() => alert("Feature coming soon!")}
+                            
                         >
                             Manage Users
                         </button>
