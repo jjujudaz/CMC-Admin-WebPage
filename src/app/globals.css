@@ -40,3 +40,82 @@ a {
     color-scheme: dark;
   }
 }
+
+/* Card container for tables */
+.table-card {
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  width: 100%;
+  max-width: 1000px;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Table styling */
+.table-card table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: "Inter", sans-serif;
+  table-layout: fixed;
+
+}
+
+.table-card th,
+.table-card td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.table-card th {
+  background: #f3f4f6;
+  color: #1e293b;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Scrollable tbody */
+.table-card tbody {
+  display: block; /* makes tbody independent for scrolling */
+  max-height: 500px;  /* fixed height for table body */
+  overflow-y: auto; /* vertical scrollbar appears if content exceeds 300px */
+}
+
+.table-card thead,
+.table-card tbody tr {
+  display: table; /* resets row display inside tbody for proper table formatting */
+  width: 100%; /* rows stretch to full width of the card */
+  table-layout: fixed; /* ensures columns are aligned with the header */
+}
+
+.table-card tr:hover {
+  background: #f0fdfa;
+}
+
+.table-card td {
+  color: #334155;
+  font-size: 14px;
+}
+
+/* Webkit browsers (Chrome, Edge, Safari) */
+.table-card tbody::-webkit-scrollbar {
+  width: 8px;
+}
+
+.table-card tbody::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.table-card tbody::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+
+
