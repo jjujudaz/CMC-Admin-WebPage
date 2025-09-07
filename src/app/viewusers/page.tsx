@@ -10,13 +10,14 @@ type Mentee = {
     bio: string;
     skills: string[];
     target_roles: string[];
-    current_level: string;
+    study_level: string;
     location: string;
 };
 
 type Mentor = {
     mentorid: number;
     name: string;
+    bio: string;
     skills: string;
     specialization_roles: string[];
     experience_level: string;
@@ -74,55 +75,18 @@ const Page = () => {
     }
 
     return (
-        <div
-            style={{
-                minHeight: "100vh",
-                background: "linear-gradient(135deg, #f0fdfa 0%, #e0e7ff 100%)",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                padding: "2rem 1rem",
-            }}
-        >
-            <button
-                onClick={() => router.back()} // goes back to previous page
-                style={{
-                    position: "absolute",
-                    top: "1.5rem",
-                    left: "1.5rem",
-                    padding: "0.75rem 1.5rem",
-                    borderRadius: "0.75rem",
-                    border: "none",
-                    background: "#9ca3af",
-                    color: "#fff",
-                    fontWeight: 700,
-                    fontSize: "1rem",
-                    cursor: "pointer",
-                    boxShadow: "0 2px 8px rgba(99,102,241,0.2)",
-                    transition: "background 0.2s, box-shadow 0.2s",
-                }}
-            >
+        <div className="create-page">
+
+        <button onClick={() => router.push('/home')} className="go-back-btn">
                 Go Back
             </button>
-            <button
-                onClick={() => alert("ill work on it tommorrow")}
-                style={{
-                    position: "absolute",
-                    top: "1.5rem",
-                    right: "1.5rem",
-                    padding: "0.75rem 1.5rem",
-                    borderRadius: "0.75rem",
-                    border: "none",
-                    background: "linear-gradient(90deg, #6366f1 0%, #06b6d4 100%)",
-                    color: "#fff",
-                    fontWeight: 700,
-                    fontSize: "1.1rem",
-                    cursor: "pointer",
-                    boxShadow: "0 3px 12px rgba(99,102,241,0.2)",
-                    transition: "background 0.2s, box-shadow 0.2s",
-                }}
+
+            <button className="add-mentee-btn" onClick={() => router.push('/addmentee')}>
+                Create Mentee
+            </button>
+            <button className="add-mentor-btn" onClick={() => router.push('/addmentor')}
             >
-                Add User
+                Create Mentor
             </button>
 
             <div className="table-card">
@@ -135,7 +99,7 @@ const Page = () => {
                         <th>Bio</th>
                         <th>Skills</th>
                         <th>Target Roles</th>
-                        <th>Current Level</th>
+                        <th>Study Level</th>
                         <th>Location</th>
                     </tr>
                     </thead>
@@ -147,7 +111,7 @@ const Page = () => {
                             <td>{mentee.bio || "-"}</td>
                             <td>{mentee.skills?.join(", ")  || "-"}</td>
                             <td>{mentee.target_roles?.join(", ")  || "-"}</td>
-                            <td>{mentee.current_level || "-"}</td>
+                            <td>{mentee.study_level || "-"}</td>
                             <td>{mentee.location || "-"}</td>
                         </tr>
                     ))}
@@ -163,6 +127,7 @@ const Page = () => {
                     <tr>
                         <th>Mentor ID</th>
                         <th>Name</th>
+                        <th>Bio</th>
                         <th>Specialisation</th>
                         <th>Experience Level</th>
                         <th>Location</th>
@@ -173,6 +138,7 @@ const Page = () => {
                         <tr key={mentor.mentorid}>
                             <td>{mentor.mentorid}</td>
                             <td>{mentor.name|| "-"}</td>
+                            <td>{mentor.bio || "-"}</td>
                             <td>{mentor.specialization_roles?.join(", ")   || "-"}</td>
                             <td>{mentor.experience_level || "-"}</td>
                             <td>{mentor.location || "-"}</td>
