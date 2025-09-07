@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@firebase/auth": "^1.11.0",
-    "@supabase/supabase-js": "^2.57.0",
+    "@supabase/supabase-js": "^2.57.2",
     "firebase": "^12.2.1",
     "next": "15.5.2",
     "react": "19.1.0",
