@@ -27,7 +27,7 @@ function Home() {
     }, []);
 
     function manageUserBtn(){
-        router.push('/users')
+        router.push('/viewusers')
     }
     return (
         <div
