@@ -1,8 +1,11 @@
 "use client";
+// Marks file as a client-side component
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/app/supabase/createClient";
 import { useRouter } from "next/navigation";
 
+// Define a TypeScript type for a User object
 type User = {
     id: number;
     name: string;
@@ -10,22 +13,27 @@ type User = {
     dob: string | null;
     type: "student" | "tutor";
     acc_status?: string;
+    skills?: string;
 };
 
 const Page = () => {
+    // State variables for lists of students and tutors
     const [students, setStudents] = useState<User[]>([]);
     const [tutors, setTutors] = useState<User[]>([]);
     const router = useRouter();
 
+    // Runs once when the component mounts to fetch all users
     useEffect(() => {
         fetchUsers();
     }, []);
 
+    // Function to fetch the users from Supabase
     async function fetchUsers() {
         try {
+            // Query the "users" table and select specific columns
             const { data, error } = await supabase
                 .from("users")
-                .select("id, name, bio, DOB, user_type, acc_status")
+                .select("id, name, bio, DOB, user_type, acc_status, mentors(skills), mentees(skills)")
                 .order("id", { ascending: true });
 
             if (error) {
@@ -43,11 +51,17 @@ const Page = () => {
                 dob: user.DOB,
                 type: user.user_type,
                 acc_status: user.acc_status,
+                skills:
+                    user.user_type?.toLowerCase() === "mentor"
+                        ? user.mentors?.skills
+                        : user.mentees?.skills,
             }));
 
-            const studentsList = mappedData.filter((user: User) => user.type === "student");
-            const tutorsList = mappedData.filter((user: User) => user.type === "tutor");
+            // Separate users into Mentee and Mentor based on their type
+            const studentsList = mappedData.filter((user: User) => user.type === "Mentee");
+            const tutorsList = mappedData.filter((user: User) => user.type === "Mentor");
 
+            // Update the state variables
             setStudents(studentsList);
             setTutors(tutorsList);
         } catch (error) {
@@ -57,6 +71,7 @@ const Page = () => {
         }
     }
 
+    // Function to suspend a user (sets acc_status to "suspended")
     async function suspendUser(id: number) {
         const { error } = await supabase
             .from("users")
@@ -67,10 +82,11 @@ const Page = () => {
             console.error("Failed to suspend user:", error.message);
             alert("Failed to suspend user: " + error.message);
         } else {
-            fetchUsers();
+            fetchUsers(); // Refreshes the table after update
         }
     }
 
+    // Function to permanently delete a user
     async function deleteUser(id: number) {
         const { error } = await supabase
             .from("users")
@@ -81,6 +97,7 @@ const Page = () => {
             console.error("Failed to delete user:", error.message);
             alert("Failed to delete user: " + error.message);
         } else {
+            // update UI without full re-fetch
             setStudents((prev) => prev.filter((user) => user.id !== id));
             setTutors((prev) => prev.filter((user) => user.id !== id));
         }
@@ -88,6 +105,10 @@ const Page = () => {
 
     return (
         <div className="create-page" style={{ display: "flex", gap: 32 }}>
+                <button onClick={() => router.push('/home')} className="back-btn">
+                    Back
+                </button>
+
             {/* Side panel for create actions */}
             <div style={{
                 minWidth: 180,
@@ -101,22 +122,9 @@ const Page = () => {
                 gap: 18,
                 height: "fit-content"
             }}>
-                <h3 style={{ color: "#334155", fontWeight: 700, marginBottom: 12 }}>Actions</h3>
-                <button
-                    style={{
-                        padding: "10px 18px",
-                        borderRadius: 8,
-                        background: "linear-gradient(90deg, #6366f1 0%, #06b6d4 100%)",
-                        color: "#fff",
-                        fontWeight: 600,
-                        fontSize: 15,
-                        border: "none",
-                        cursor: "pointer",
-                        marginBottom: 8,
-                        width: "100%"
-                    }}
-                    onClick={() => router.push('/create-user')}
-                >
+
+                <h3 style={{ color: "#334155", fontWeight: 700, marginBottom: 12 }}>Create Action</h3>
+                <button className="btn primary" onClick={() => router.push('/create-user')}>
                     Create User
                 </button>
                 
@@ -125,7 +133,7 @@ const Page = () => {
             {/* Main content */}
             <div style={{ flex: 1 }}>
                 <div className="table-card">
-                    <h2 style={{ marginBottom: "1rem", color: "#1e293b" }}>Students</h2>
+                    <h2 style={{ marginBottom: "1rem", color: "#1e293b" }}>Students Table</h2>
                     <table>
                         <thead>
                             <tr>
@@ -133,6 +141,7 @@ const Page = () => {
                                 <th>Name</th>
                                 <th>Bio</th>
                                 <th>DOB</th>
+                                <th>Skills</th>
                                 <th>Suspend</th>
                                 <th>Delete</th>
                             </tr>
@@ -144,6 +153,28 @@ const Page = () => {
                                     <td>{user.name || "-"}</td>
                                     <td>{user.bio || "-"}</td>
                                     <td>{user.dob || "-"}</td>
+                                    <td>
+                                        {user.skills && user.skills.length > 0 ? (
+                                            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                                                {user.skills.map((skill, i) => (
+                                                    <span
+                                                        key={i}
+                                                        style={{
+                                                            background: "#e0f2fe",
+                                                            color: "#0369a1",
+                                                            padding: "3px 8px",
+                                                            borderRadius: "6px",
+                                                            fontSize: "0.85rem",
+                                                        }}
+                                                    >
+                                                        {skill}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            "-"
+                                        )}
+                                    </td>
                                     <td>
                                         <button
                                             style={{
@@ -189,7 +220,7 @@ const Page = () => {
                 </div>
 
                 <div className="table-card" style={{ marginTop: 32 }}>
-                    <h2 style={{ marginBottom: "1rem", color: "#1e293b" }}>Tutors</h2>
+                    <h2 style={{ marginBottom: "1rem", color: "#1e293b" }}>Tutors Table</h2>
                     <table>
                         <thead>
                             <tr>
@@ -197,6 +228,7 @@ const Page = () => {
                                 <th>Name</th>
                                 <th>Bio</th>
                                 <th>DOB</th>
+                                <th>Skills</th>
                                 <th>Suspend</th>
                                 <th>Delete</th>
                             </tr>
@@ -208,6 +240,28 @@ const Page = () => {
                                     <td>{user.name || "-"}</td>
                                     <td>{user.bio || "-"}</td>
                                     <td>{user.dob || "-"}</td>
+                                    <td>
+                                        {user.skills && user.skills.length > 0 ? (
+                                            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                                                {user.skills.map((skill, i) => (
+                                                    <span
+                                                        key={i}
+                                                        style={{
+                                                            background: "#e0f2fe",
+                                                            color: "#0369a1",
+                                                            padding: "3px 8px",
+                                                            borderRadius: "6px",
+                                                            fontSize: "0.85rem",
+                                                        }}
+                                                    >
+                                                        {skill}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            "-"
+                                        )}
+                                    </td>
                                     <td>
                                         <button
                                             style={{
