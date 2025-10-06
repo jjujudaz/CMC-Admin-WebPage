@@ -3,11 +3,21 @@ import { useState } from "react";
 import { supabase } from "@/app/supabase/createClient";
 import { useRouter } from "next/navigation";
 
+type MenteeForm = {
+    name: string;
+    email: string;
+    bio: string;
+    skills: string;
+    target_roles: string;
+    study_level: string;
+    location: string;
+};
+
 const Page = () => {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState<boolean>(false);
 
-    const [mentee, setMentee] = useState({
+    const [mentee, setMentee] = useState<MenteeForm>({
         name: "",
         email: "",
         bio: "",
@@ -17,14 +27,15 @@ const Page = () => {
         location: "",
     });
 
-    const handleChange = (e: any) => {
-        setMentee({
-            ...mentee,
-            [e.target.name]: e.target.value,
-        });
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setMentee((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
     };
 
-    const handleSubmit = async (e: any) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
 

@@ -3,12 +3,20 @@ import { useState } from "react";
 import { supabase } from "@/app/supabase/createClient";
 import { useRouter } from "next/navigation";
 
+type UserForm = {
+    name: string;
+    email: string;
+    bio: string;
+    dob: string;
+    type: string;
+};
+
 const Page = () => {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState<boolean>(false);
 
     // Define objects to hold form values. Empty values to begin with
-    const [user, setUser] = useState({
+    const [user, setUser] = useState<UserForm>({
         name: "",
         email: "",
         bio: "",
@@ -74,7 +82,7 @@ const Page = () => {
             const authUserId = authData.user.id; // the UUID to link everything
 
             // Insert into the users table
-            const { data: userData, error: userError } = await supabase
+            const {  error: userError } = await supabase
                 .from("users")
                 .insert([
                     {
@@ -125,9 +133,17 @@ const Page = () => {
             });
             setSelectedSkills([]);
             router.push("/viewusers");
-        } catch (err: any) {
+        } catch (err: unknown) {
+            // Narrow unknown to retrieve a safe error message without using `any`
+            let message = "An unknown error occurred";
+            if (err instanceof Error) message = err.message;
+            else if (typeof err === "object" && err !== null && "message" in err) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                message = (err as any).message ?? message;
+            }
+
             console.error("Error creating user:", err);
-            alert(`Error: ${err.message}`);
+            alert(`Error: ${message}`);
         } finally {
             setLoading(false);
         }

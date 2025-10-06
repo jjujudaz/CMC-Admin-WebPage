@@ -2,18 +2,31 @@
 import '../firebase/initialiseFirebase'
 import { useEffect, useState } from "react";
 
+type SimpleUser = {
+    uid?: string;
+    displayName?: string | null;
+    email?: string | null;
+};
 
 function Users() {
-    const [users, setUsers] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [users, setUsers] = useState<SimpleUser[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         async function fetchUsers() {
             setLoading(true);
             const res = await fetch("/api/list-users");
             if (res.ok) {
-                const data = await res.json();
-                setUsers(data.users);
+                // treat incoming JSON as unknown and narrow it
+                const data = (await res.json()) as unknown;
+                if (data && typeof data === 'object') {
+                    const dataObj = data as Record<string, unknown>;
+                    const maybeUsers = dataObj['users'];
+                    if (Array.isArray(maybeUsers)) {
+                        // map items to SimpleUser conservatively
+                        setUsers(maybeUsers.map((u) => u as SimpleUser));
+                    }
+                }
             }
             setLoading(false);
         }

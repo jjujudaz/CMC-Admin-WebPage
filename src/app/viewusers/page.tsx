@@ -11,9 +11,9 @@ type User = {
     name: string;
     bio: string;
     dob: string | null;
-    type: "student" | "tutor";
+    type: "student" | "tutor" | string;
     acc_status?: string;
-    skills?: string;
+    skills?: string[] | null;
 };
 
 const Page = () => {
@@ -44,18 +44,58 @@ const Page = () => {
             }
 
             // Map the fetched data to match the expected property names
-            const mappedData = (data ?? []).map((user: any) => ({
-                id: user.id,
-                name: user.name,
-                bio: user.bio,
-                dob: user.DOB,
-                type: user.user_type,
-                acc_status: user.acc_status,
-                skills:
-                    user.user_type?.toLowerCase() === "mentor"
-                        ? user.mentors?.skills
-                        : user.mentees?.skills,
-            }));
+            // Narrow the incoming rows and map to our `User` shape
+            type SupabaseRow = Record<string, unknown>;
+            const rows = (data ?? []) as SupabaseRow[];
+            const mappedData = rows.map((user) => {
+                const id = (user.id as number) ?? 0;
+                const name = (user.name as string) ?? "";
+                const bio = (user.bio as string) ?? "";
+                const dob = (user.DOB as string) ?? null;
+                const userType = (user.user_type as string) ?? "";
+                const acc_status = (user.acc_status as string) ?? undefined;
+
+                // extract skills depending on relation shape
+                let skills: string[] | null = null;
+                // safe skill extraction helper
+                const extractSkills = (candidate: unknown): string[] | null => {
+                    if (!candidate) return null;
+                    // candidate might be an array-of-objects, a single object, or an array of strings
+                    if (Array.isArray(candidate)) {
+                        // try to find a `skills` property on the first item
+                        const first = candidate[0];
+                        if (first && typeof first === 'object' && 'skills' in (first as Record<string, unknown>)) {
+                            const val = (first as Record<string, unknown>)['skills'];
+                            return Array.isArray(val) ? (val as string[]) : null;
+                        }
+                        // or maybe candidate is already an array of strings
+                        if (candidate.every((c) => typeof c === 'string')) return candidate as string[];
+                        return null;
+                    }
+                    if (typeof candidate === 'object') {
+                        const obj = candidate as Record<string, unknown>;
+                        const val = obj['skills'];
+                        return Array.isArray(val) ? (val as string[]) : null;
+                    }
+                    return null;
+                };
+
+                if (userType?.toLowerCase() === "mentor") {
+                    skills = extractSkills((user as Record<string, unknown>)['mentors']);
+                } else {
+                    skills = extractSkills((user as Record<string, unknown>)['mentees']);
+                }
+
+                return {
+                    id,
+                    name,
+                    bio,
+                    dob,
+                    type: userType,
+                    acc_status,
+                    skills,
+                } as User;
+            });
 
             // Separate users into student and tutor based on their type
             const studentsList = mappedData.filter((user: User) => user.type === "student");

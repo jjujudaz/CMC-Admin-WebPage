@@ -1,6 +1,6 @@
 'use client'
 import Image from "next/image";
-import styles from "./page.module.css";
+
 import './firebase/initialiseFirebase'
 
 import { getAuth, signInWithEmailAndPassword } from "@firebase/auth";
@@ -15,17 +15,18 @@ export default function Home() {
   const router = useRouter();
   const auth = getAuth();
 
-  const handleLogin = async (e: any) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMessage("");
     try {
       await signInWithEmailAndPassword(auth, email, password);
       // setMessage("Login successful!");
-  router.push('/home')
-
-
-    } catch (error) {
-      setMessage(`Login failed: ${error}`);
+      router.push('/home');
+    } catch (err: unknown) {
+      let msg = 'Login failed';
+      if (err instanceof Error) msg = `Login failed: ${err.message}`;
+      else if (typeof err === 'string') msg = `Login failed: ${err}`;
+      setMessage(msg);
     }
   };
 
@@ -34,13 +35,13 @@ export default function Home() {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setMessage(`Logged in as ${user.email}`);
-  router.push('/home')
+        router.push('/home');
       } else {
         setMessage("");
       }
     });
     return () => unsubscribe();
-  }, [auth]);
+  }, [auth, router]);
 
   return (
     <div
