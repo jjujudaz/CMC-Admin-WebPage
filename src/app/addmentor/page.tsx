@@ -17,14 +17,14 @@ const Page = () => {
         location: "",
     });
 
-    const handleChange = (e) => {
+    const handleChange = (e: any) => {
         setMentor({
             ...mentor,
             [e.target.name]: e.target.value,
         });
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: any) => {
         e.preventDefault();
         setLoading(true);
 
@@ -72,9 +72,9 @@ const Page = () => {
 
                 router.push("/viewusers");
             }
-        } catch (err) {
-            console.error("Unexpected error:", err);
-            alert(`Unexpected error: ${err.message}`);
+        } catch (error) {
+            console.error("Unexpected error:", error);
+            alert(`Unexpected error: ${error}`);
         } finally {
             setLoading(false);
         }

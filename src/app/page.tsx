@@ -15,7 +15,7 @@ export default function Home() {
   const router = useRouter();
   const auth = getAuth();
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: any) => {
     e.preventDefault();
     setMessage("");
     try {
@@ -25,7 +25,7 @@ export default function Home() {
 
 
     } catch (error) {
-      setMessage(`Login failed: ${error.message}`);
+      setMessage(`Login failed: ${error}`);
     }
   };
 

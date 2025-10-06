@@ -57,9 +57,9 @@ const Page = () => {
                         : user.mentees?.skills,
             }));
 
-            // Separate users into Mentee and Mentor based on their type
-            const studentsList = mappedData.filter((user: User) => user.type === "Mentee");
-            const tutorsList = mappedData.filter((user: User) => user.type === "Mentor");
+            // Separate users into student and tutor based on their type
+            const studentsList = mappedData.filter((user: User) => user.type === "student");
+            const tutorsList = mappedData.filter((user: User) => user.type === "tutor");
 
             // Update the state variables
             setStudents(studentsList);
@@ -154,9 +154,9 @@ const Page = () => {
                                     <td>{user.bio || "-"}</td>
                                     <td>{user.dob || "-"}</td>
                                     <td>
-                                        {user.skills && user.skills.length > 0 ? (
+                                        {Array.isArray(user.skills) && user.skills.length > 0 ? (
                                             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                                                {user.skills.map((skill, i) => (
+                                                {user.skills.map((skill: string, i: number) => (
                                                     <span
                                                         key={i}
                                                         style={{
@@ -241,9 +241,9 @@ const Page = () => {
                                     <td>{user.bio || "-"}</td>
                                     <td>{user.dob || "-"}</td>
                                     <td>
-                                        {user.skills && user.skills.length > 0 ? (
+                                        {Array.isArray(user.skills) && user.skills.length > 0 ? (
                                             <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                                                {user.skills.map((skill, i) => (
+                                                {user.skills.map((skill: string, i: number) => (
                                                     <span
                                                         key={i}
                                                         style={{
