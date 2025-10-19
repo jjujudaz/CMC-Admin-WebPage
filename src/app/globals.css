@@ -60,7 +60,7 @@ a {
 .table-card table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
+  text-align: center;
   font-family: "Inter", sans-serif;
   table-layout: fixed;
 
@@ -101,7 +101,7 @@ a {
 
 .table-card td {
   color: #334155;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 /* Webkit browsers (Chrome, Edge, Safari) */

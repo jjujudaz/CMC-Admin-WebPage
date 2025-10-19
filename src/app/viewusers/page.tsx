@@ -11,9 +11,9 @@ type User = {
     name: string;
     bio: string;
     dob: string | null;
-    type: "student" | "tutor" | string;
+    type: "student" | "tutor";
     acc_status?: string;
-    skills?: string[] | null;
+    skills?: string;
 };
 
 const Page = () => {
@@ -44,62 +44,22 @@ const Page = () => {
             }
 
             // Map the fetched data to match the expected property names
-            // Narrow the incoming rows and map to our `User` shape
-            type SupabaseRow = Record<string, unknown>;
-            const rows = (data ?? []) as SupabaseRow[];
-            const mappedData = rows.map((user) => {
-                const id = (user.id as number) ?? 0;
-                const name = (user.name as string) ?? "";
-                const bio = (user.bio as string) ?? "";
-                const dob = (user.DOB as string) ?? null;
-                const userType = (user.user_type as string) ?? "";
-                const acc_status = (user.acc_status as string) ?? undefined;
+            const mappedData = (data ?? []).map((user: any) => ({
+                id: user.id,
+                name: user.name,
+                bio: user.bio,
+                dob: user.DOB,
+                type: user.user_type,
+                acc_status: user.acc_status,
+                skills:
+                    user.user_type?.toLowerCase() === "mentor"
+                        ? user.mentors?.skills
+                        : user.mentees?.skills,
+            }));
 
-                // extract skills depending on relation shape
-                let skills: string[] | null = null;
-                // safe skill extraction helper
-                const extractSkills = (candidate: unknown): string[] | null => {
-                    if (!candidate) return null;
-                    // candidate might be an array-of-objects, a single object, or an array of strings
-                    if (Array.isArray(candidate)) {
-                        // try to find a `skills` property on the first item
-                        const first = candidate[0];
-                        if (first && typeof first === 'object' && 'skills' in (first as Record<string, unknown>)) {
-                            const val = (first as Record<string, unknown>)['skills'];
-                            return Array.isArray(val) ? (val as string[]) : null;
-                        }
-                        // or maybe candidate is already an array of strings
-                        if (candidate.every((c) => typeof c === 'string')) return candidate as string[];
-                        return null;
-                    }
-                    if (typeof candidate === 'object') {
-                        const obj = candidate as Record<string, unknown>;
-                        const val = obj['skills'];
-                        return Array.isArray(val) ? (val as string[]) : null;
-                    }
-                    return null;
-                };
-
-                if (userType?.toLowerCase() === "mentor") {
-                    skills = extractSkills((user as Record<string, unknown>)['mentors']);
-                } else {
-                    skills = extractSkills((user as Record<string, unknown>)['mentees']);
-                }
-
-                return {
-                    id,
-                    name,
-                    bio,
-                    dob,
-                    type: userType,
-                    acc_status,
-                    skills,
-                } as User;
-            });
-
-            // Separate users into student and tutor based on their type
-            const studentsList = mappedData.filter((user: User) => user.type === "student");
-            const tutorsList = mappedData.filter((user: User) => user.type === "tutor");
+            // Separate users into Mentee and Mentor based on their type
+            const studentsList = mappedData.filter((user: User) => user.type === "Mentee");
+            const tutorsList = mappedData.filter((user: User) => user.type === "Mentor");
 
             // Update the state variables
             setStudents(studentsList);
@@ -145,9 +105,9 @@ const Page = () => {
 
     return (
         <div className="create-page" style={{ display: "flex", gap: 32 }}>
-                <button onClick={() => router.push('/home')} className="back-btn">
-                    Back
-                </button>
+            <button onClick={() => router.push('/home')} className="back-btn">
+                Back
+            </button>
 
             {/* Side panel for create actions */}
             <div style={{
@@ -167,7 +127,7 @@ const Page = () => {
                 <button className="btn primary" onClick={() => router.push('/create-user')}>
                     Create User
                 </button>
-                
+
             </div>
 
             {/* Main content */}
@@ -176,85 +136,102 @@ const Page = () => {
                     <h2 style={{ marginBottom: "1rem", color: "#1e293b" }}>Students Table</h2>
                     <table>
                         <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Bio</th>
-                                <th>DOB</th>
-                                <th>Skills</th>
-                                <th>Suspend</th>
-                                <th>Delete</th>
-                            </tr>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Bio</th>
+                            <th>DOB</th>
+                            <th>Skills</th>
+                            <th>Suspend</th>
+                            <th>Update</th>
+                            <th>Delete</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {students.map((user) => (
-                                <tr key={user.id}>
-                                    <td>{user.id}</td>
-                                    <td>{user.name || "-"}</td>
-                                    <td>{user.bio || "-"}</td>
-                                    <td>{user.dob || "-"}</td>
-                                    <td>
-                                        {Array.isArray(user.skills) && user.skills.length > 0 ? (
-                                            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                                                {user.skills.map((skill: string, i: number) => (
-                                                    <span
-                                                        key={i}
-                                                        style={{
-                                                            background: "#e0f2fe",
-                                                            color: "#0369a1",
-                                                            padding: "3px 8px",
-                                                            borderRadius: "6px",
-                                                            fontSize: "0.85rem",
-                                                        }}
-                                                    >
+                        {students.map((user) => (
+                            <tr key={user.id}>
+                                <td>{user.id}</td>
+                                <td>{user.name || "-"}</td>
+                                <td>{user.bio || "-"}</td>
+                                <td>{user.dob || "-"}</td>
+                                <td>
+                                    {user.skills && user.skills.length > 0 ? (
+                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                                            {user.skills.map((skill, i) => (
+                                                <span
+                                                    key={i}
+                                                    style={{
+                                                        background: "#e0f2fe",
+                                                        color: "#0369a1",
+                                                        padding: "3px 8px",
+                                                        borderRadius: "6px",
+                                                        fontSize: "0.85rem",
+                                                    }}
+                                                >
                                                         {skill}
                                                     </span>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            "-"
-                                        )}
-                                    </td>
-                                    <td>
-                                        <button
-                                            style={{
-                                                padding: "6px 14px",
-                                                borderRadius: 6,
-                                                background: user.acc_status === "suspended" ? "#d1d5db" : "#f59e42",
-                                                color: "#fff",
-                                                fontWeight: 600,
-                                                border: "none",
-                                                cursor: user.acc_status === "suspended" ? "not-allowed" : "pointer",
-                                                marginRight: 8,
-                                            }}
-                                            onClick={() => suspendUser(user.id)}
-                                            disabled={user.acc_status === "suspended"}
-                                        >
-                                            {user.acc_status === "suspended" ? "Suspended" : "Suspend"}
-                                        </button>
-                                    </td>
-                                    <td>
-                                        <button
-                                            style={{
-                                                padding: "6px 14px",
-                                                borderRadius: 6,
-                                                background: "#ef4444",
-                                                color: "#fff",
-                                                fontWeight: 600,
-                                                border: "none",
-                                                cursor: "pointer",
-                                            }}
-                                            onClick={() => {
-                                                if (window.confirm("Are you sure you want to delete this user?")) {
-                                                    deleteUser(user.id);
-                                                }
-                                            }}
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        "-"
+                                    )}
+                                </td>
+                                <td>
+                                    <button
+                                        style={{
+                                            padding: "6px 14px",
+                                            borderRadius: 6,
+                                            background: user.acc_status === "suspended" ? "#d1d5db" : "#f59e42",
+                                            color: "#fff",
+                                            fontWeight: 600,
+                                            border: "none",
+                                            cursor: user.acc_status === "suspended" ? "not-allowed" : "pointer",
+                                            marginRight: 8,
+                                        }}
+                                        onClick={() => suspendUser(user.id)}
+                                        disabled={user.acc_status === "suspended"}
+                                    >
+                                        {user.acc_status === "suspended" ? "Suspended" : "Suspend"}
+                                    </button>
+                                </td>
+                                <td>
+                                    <button
+                                        style={{
+                                            padding: "6px 14px",
+                                            borderRadius: 6,
+                                            background: "#3B82F6",
+                                            color: "#fff",
+                                            fontWeight: 600,
+                                            border: "none",
+                                            cursor: "pointer",
+                                        }}
+                                        onClick={() => router.push(`/update-user/${user.id}`)}
+                                    >
+                                        Update
+                                    </button>
+                                </td>
+                                <td>
+                                    <button
+                                        style={{
+                                            padding: "6px 14px",
+                                            borderRadius: 6,
+                                            background: "#ef4444",
+                                            color: "#fff",
+                                            fontWeight: 600,
+                                            border: "none",
+                                            cursor: "pointer",
+                                        }}
+                                        onClick={() => {
+                                            if (window.confirm("Are you sure you want to delete this user?")) {
+                                                deleteUser(user.id);
+                                            }
+                                        }}
+                                    >
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
                         </tbody>
                     </table>
                 </div>
@@ -263,85 +240,102 @@ const Page = () => {
                     <h2 style={{ marginBottom: "1rem", color: "#1e293b" }}>Tutors Table</h2>
                     <table>
                         <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Bio</th>
-                                <th>DOB</th>
-                                <th>Skills</th>
-                                <th>Suspend</th>
-                                <th>Delete</th>
-                            </tr>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Bio</th>
+                            <th>DOB</th>
+                            <th>Skills</th>
+                            <th>Suspend</th>
+                            <th>Update</th>
+                            <th>Delete</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {tutors.map((user) => (
-                                <tr key={user.id}>
-                                    <td>{user.id}</td>
-                                    <td>{user.name || "-"}</td>
-                                    <td>{user.bio || "-"}</td>
-                                    <td>{user.dob || "-"}</td>
-                                    <td>
-                                        {Array.isArray(user.skills) && user.skills.length > 0 ? (
-                                            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                                                {user.skills.map((skill: string, i: number) => (
-                                                    <span
-                                                        key={i}
-                                                        style={{
-                                                            background: "#e0f2fe",
-                                                            color: "#0369a1",
-                                                            padding: "3px 8px",
-                                                            borderRadius: "6px",
-                                                            fontSize: "0.85rem",
-                                                        }}
-                                                    >
+                        {tutors.map((user) => (
+                            <tr key={user.id}>
+                                <td>{user.id}</td>
+                                <td>{user.name || "-"}</td>
+                                <td>{user.bio || "-"}</td>
+                                <td>{user.dob || "-"}</td>
+                                <td>
+                                    {user.skills && user.skills.length > 0 ? (
+                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                                            {user.skills.map((skill, i) => (
+                                                <span
+                                                    key={i}
+                                                    style={{
+                                                        background: "#e0f2fe",
+                                                        color: "#0369a1",
+                                                        padding: "3px 8px",
+                                                        borderRadius: "6px",
+                                                        fontSize: "0.85rem",
+                                                    }}
+                                                >
                                                         {skill}
                                                     </span>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            "-"
-                                        )}
-                                    </td>
-                                    <td>
-                                        <button
-                                            style={{
-                                                padding: "6px 14px",
-                                                borderRadius: 6,
-                                                background: user.acc_status === "suspended" ? "#d1d5db" : "#f59e42",
-                                                color: "#fff",
-                                                fontWeight: 600,
-                                                border: "none",
-                                                cursor: user.acc_status === "suspended" ? "not-allowed" : "pointer",
-                                                marginRight: 8,
-                                            }}
-                                            onClick={() => suspendUser(user.id)}
-                                            disabled={user.acc_status === "suspended"}
-                                        >
-                                            {user.acc_status === "suspended" ? "Suspended" : "Suspend"}
-                                        </button>
-                                    </td>
-                                    <td>
-                                        <button
-                                            style={{
-                                                padding: "6px 14px",
-                                                borderRadius: 6,
-                                                background: "#ef4444",
-                                                color: "#fff",
-                                                fontWeight: 600,
-                                                border: "none",
-                                                cursor: "pointer",
-                                            }}
-                                            onClick={() => {
-                                                if (window.confirm("Are you sure you want to delete this user?")) {
-                                                    deleteUser(user.id);
-                                                }
-                                            }}
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        "-"
+                                    )}
+                                </td>
+                                <td>
+                                    <button
+                                        style={{
+                                            padding: "6px 14px",
+                                            borderRadius: 6,
+                                            background: user.acc_status === "suspended" ? "#d1d5db" : "#f59e42",
+                                            color: "#fff",
+                                            fontWeight: 600,
+                                            border: "none",
+                                            cursor: user.acc_status === "suspended" ? "not-allowed" : "pointer",
+                                            marginRight: 8,
+                                        }}
+                                        onClick={() => suspendUser(user.id)}
+                                        disabled={user.acc_status === "suspended"}
+                                    >
+                                        {user.acc_status === "suspended" ? "Suspended" : "Suspend"}
+                                    </button>
+                                </td>
+                                <td>
+                                    <button
+                                        style={{
+                                            padding: "6px 14px",
+                                            borderRadius: 6,
+                                            background: "#3B82F6",
+                                            color: "#fff",
+                                            fontWeight: 600,
+                                            border: "none",
+                                            cursor: "pointer",
+                                        }}
+                                        onClick={() => router.push(`/update-user/${user.id}`)}
+                                    >
+                                        Update
+                                    </button>
+                                </td>
+                                <td>
+                                    <button
+                                        style={{
+                                            padding: "6px 14px",
+                                            borderRadius: 6,
+                                            background: "#ef4444",
+                                            color: "#fff",
+                                            fontWeight: 600,
+                                            border: "none",
+                                            cursor: "pointer",
+                                        }}
+                                        onClick={() => {
+                                            if (window.confirm("Are you sure you want to delete this user?")) {
+                                                deleteUser(user.id);
+                                            }
+                                        }}
+                                    >
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
                         </tbody>
                     </table>
                 </div>
